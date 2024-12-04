@@ -1,0 +1,19 @@
+.sidebar .nav .nav-item.active > .nav-link .menu-title {
+    color: #1bcfb4 !important;
+}
+
+.sidebar .nav .nav-item.active > .nav-link i {
+    color: #1bcfb4 !important;
+}
+
+.redd {
+    background-color: #e91e63 !important;
+    color: black !important;
+}
+.form-floating input {
+    font-size: 1rem !important;
+}
+.sidebar .nav .nav-item.active {
+    background: #e6dfdf !important;
+    border-radius: 10px;
+}
