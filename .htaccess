@@ -20,6 +20,16 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block .env file access
+    RewriteRule ^\.env - [F,L]
+
+    # Redirect any 403 forbidden requests to a 404 page
+    ErrorDocument 403 /404.html
+</IfModule>
+
 # php -- BEGIN cPanel-generated handler, do not edit
 # Set the “ea-php82” package as the default “PHP” programming language.
 <IfModule mime_module>

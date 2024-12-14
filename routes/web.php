@@ -18,12 +18,17 @@ use App\Http\Controllers\user\UserFileController;
 use App\Http\Controllers\user\UserFileShare;
 
 
-// =========login routes 
+// =========login routes
 Route::group(['middleware' => 'guest'], function () {
-     Route::get('/', [LoginController::class, 'index'])->name('login');
+    Route::get('/', [LoginController::class, 'index']);
     Route::get('/login', [LoginController::class, 'index'])->name('login');
-    
     Route::post('/authenticate', [LoginController::class, 'authenticate'])->name('authenticate');
+
+});
+
+
+Route::fallback(function () {
+    return view('404');
 });
 
 Route::group(['prefix' => 'admin'], function () {
@@ -42,7 +47,7 @@ Route::group(['prefix' => 'admin'], function () {
         Route::any('/user/update-status/{id?}', [UserController::class, 'status_update'])->name('admin.update-status');
         Route::get('/ajax/getTeamLead/{dept_id?}', [UserController::class, 'getTeamLead'])->name('admin.check_team_lead');
 
-        // Department Management 
+        // Department Management
         Route::any('/department', [DeptController::class, 'department_index'])->name('admin.department');
         Route::any('/add-department', [DeptController::class, 'add_department'])->name('admin.department-add');
         Route::any('/create-department', [DeptController::class, 'create_department'])->name('admin.department-create');
@@ -61,26 +66,26 @@ Route::group(['prefix' => 'admin'], function () {
         Route::any('/activity/member/delete/{id?}', [UserActivityController::class, 'memberDeleteFileDash'])->name('admin.member.files');
         Route::any('/activity/member/delete-list/{id?}', [UserActivityController::class, 'memberDeleteFileList'])->name('admin.member.files.list');
         Route::any('/activity/member/deleted-folder-file/{id?}', [UserActivityController::class, 'memberFileDeleteInFolder'])->name('admin.member.files.list.folderr');
-        //shared files list 
+        //shared files list
         Route::any('/activity/shared', [UserActivityController::class, 'sharedList'])->name('admin.shared');
         Route::any('/activity/shared/files', [UserActivityController::class, 'sharedFilesList']);
         Route::any('/activity/shared/folders', [UserActivityController::class, 'sharedFoldersList']);
         Route::any('/activity/shared/folder/list/{id?}', [UserActivityController::class, 'sharedFolderList'])->name('admin.shared.folder.file.list');
 
-        // delete from the admin side 
+        // delete from the admin side
         Route::any('/activity/teamlead/delete/{id?}', [UserActivityController::class, 'hardDeleteFileList'])->name('admin.delete.files.list');
         Route::any('/activity/teamlead/folder/{id?}', [UserActivityController::class, 'hardDeleteFolders']);
         Route::any('/activity/teamlead/delete/folder-file/{id?}', [UserActivityController::class, 'hardDeleteMembersFoldersFile']);
         Route::any('/activity/members/delete/{id?}', [UserActivityController::class, 'hardDeleteMembersFileList'])->name('admin.delete.member.files.list');
         Route::any('/activity/members/folder/{id?}', [UserActivityController::class, 'hardDeleteMembersFolders']);
 
-        // shared files and folders delete 
+        // shared files and folders delete
         Route::any('/shared-file/delete/{id?}', [UserActivityController::class, 'sharedFileDelete'])->name('shared.delete-file');
         Route::any('/shared-folder/delete/{id?}', [UserActivityController::class, 'sharedFolderDelete'])->name('shared.delete-folder');
     });
 });
 
-// team leader routes 
+// team leader routes
 Route::group(['prefix' => 'teamlead'], function () {
     Route::group(['middleware' => ['auth', 'role:2']], function () {
         Route::get('/dashboard', [TeamLeadController::class, 'index'])->name('teamlead.dashboard');
@@ -89,7 +94,7 @@ Route::group(['prefix' => 'teamlead'], function () {
         Route::any('/update', [TeamLeadController::class, 'ProfileUpdate'])->name('teamlead.update');
         Route::any('/teams', [MyTeamController::class, 'myTeams'])->name('teamlead.teams');
 
-        // Folders related routes 
+        // Folders related routes
         Route::any('/folder/file-list/{id?}', [FolderController::class, 'folderFileList'])->name('teamlead.folder.files');
         Route::any('folder/file/store', [FolderController::class, 'storeFileInFolder'])->name('teamlead.folder.file.store');
         Route::any('folder/file/add/{id}', [FolderController::class, 'folderInsideFile'])->name('teamlead.folder.file.add');
@@ -100,7 +105,7 @@ Route::group(['prefix' => 'teamlead'], function () {
         Route::any('/folder/delete/{id?}', [FolderController::class, 'folderDelete'])->name('teamlead.delete-folder');
         Route::any('/folder/file/delete/{id?}', [FolderController::class, 'deleteFileInFolder']);
 
-        // Files related routes 
+        // Files related routes
         Route::any('/my-folders', [FileController::class, 'fileIndex'])->name('teamlead.folder');
         Route::any('/update-folder/{id?}', [FileController::class, 'fileIndex'])->name('teamlead.folder.update');
         Route::any('/files/list', [FileController::class, 'fileList'])->name('teamlead.files.list');
@@ -113,7 +118,7 @@ Route::group(['prefix' => 'teamlead'], function () {
         Route::any('/file/sharing', [TeamLeadFileShare::class, 'fileShare'])->name('leamlead.fileShare');
         Route::any('/folder/sharing', [TeamLeadFileShare::class, 'folderShare'])->name('leamlead.folderShare');
         Route::any('/shared-file-list', [TeamLeadFileShare::class, 'sharedFileList'])->name('shared.file.list');
-        Route::any('/shared-folder-file-list/{id?}', [TeamLeadFileShare::class, 'sharedFolderFileList'])->name('shared.folder.file');
+        Route::any('/shared-folder-file-list/{id?}', [TeamLeadFileShare::class, 'sharedFolderFileList'])->name('shared.folder.filee');
     });
 });
 // users routes
@@ -128,7 +133,7 @@ Route::group(['prefix' => 'user'], function () {
         Route::any('/folders', [UserFolderController::class, 'folderIndex'])->name('user.folder');
         Route::any('/folder/add', [UserFolderController::class, 'folderCreate'])->name('user.add-folder');
         Route::any('/folder/store', [UserFolderController::class, 'folderStore'])->name('user.store-folder');
-        Route::get('/folderlist',[UserFolderController::class,'subfolderlist']);
+        Route::get('/folderlist', [UserFolderController::class, 'subfolderlist']);
         Route::any('/folder/edit/{id?}', [UserFolderController::class, 'editFolder'])->name('user.edit-folder');
         Route::any('/folder/update/{id?}', [UserFolderController::class, 'folderUpdate'])->name('user.update-folder');
         Route::any('/folder/delete/{id?}', [UserFolderController::class, 'folderDelete'])->name('user.delete-folder');
@@ -136,7 +141,7 @@ Route::group(['prefix' => 'user'], function () {
         Route::any('folder/file/store', [UserFolderController::class, 'storeFileInFolder'])->name('user.folder.file.store');
         Route::any('/folder/file/delete/{id?}', [UserFolderController::class, 'deleteFileInFolder']);
 
-        // files route 
+        // files route
         Route::any('/files/list', [UserFileController::class, 'fileList'])->name('user.files.list');
         Route::any('/file/add', [UserFileController::class, 'fileCreate'])->name('user.add-files');
         Route::any('/file/store', [UserFileController::class, 'storeFile'])->name('user.store-file');
@@ -146,8 +151,8 @@ Route::group(['prefix' => 'user'], function () {
         Route::any('/file/sharing', [UserFileShare::class, 'fileShare'])->name('user.fileShare');
         Route::any('/folder/sharing', [UserFileShare::class, 'folderShare'])->name('user.folderShare');
         Route::get('/getSharedUsers', [UserFileShare::class, 'getSharedUsers'])->name('user.getSharedUsers');
-        Route::any('/shared', [UserFileShare::class, 'shared'])->name('shared.file');
-        Route::any('/shared-file-list', [UserFileShare::class, 'sharedFileList'])->name('shared.file.list');
+        Route::any('/shared', [UserFileShare::class, 'shared'])->name('shared.filee');
+        Route::any('/shared-file-list', [UserFileShare::class, 'sharedFileList'])->name('shared.file.listt');
         Route::any('/shared-folder-file-list/{id?}', [UserFileShare::class, 'sharedFolderFileList'])->name('shared.folder.file');
         Route::any('/shared-folder-file/mail', [UserFileShare::class, 'sendFileMail'])->name('shared.folder.mail');
     });

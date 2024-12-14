@@ -16,7 +16,7 @@ class FileController extends Controller
     // list the files
     public function fileIndex(Request $request)
     {
-        $id=$request->id!=''?$request->id:null;
+        $id = $request->id != '' ? $request->id : null;
         $teamLead = auth()->user();
         $departmentId = $teamLead->dept_id;
         $files = File::where('user_id', $teamLead->id)
@@ -25,7 +25,7 @@ class FileController extends Controller
             })
             ->with('folder', 'user')
             ->get();
-        // ------- all folder show 
+        // ------- all folder show
 
         $user = Auth::user();
         $users = User::where('dept_id', $departmentId)
@@ -35,20 +35,20 @@ class FileController extends Controller
         if ($user->role == '2') {
             $folders = Folder::with('user')
                 ->where('user_id', $user->id)
-                ->where('parent_id',$id)
+                ->where('parent_id', $id)
                 ->orderBy('created_at', 'desc')
                 ->get();
         } else {
             $folders = collect();
         }
-        $folder=Folder::where('id',$id)->first();
-        return view('teamlead.pages.files.list', compact('files', 'folders', 'users','folder'));
+        $folder = Folder::where('id', $id)->first();
+        return view('teamlead.pages.files.list', compact('files', 'folders', 'users', 'folder'));
     }
 
-    // file list 
+    // file list
     public function fileList(Request $request)
     {
-        $id=$request->id!=''?$request->id:null;
+        $id = $request->id != '' ? $request->id : null;
         $teamLead = auth()->user();
         $departmentId = $teamLead->dept_id;
         $userName = $teamLead->name;
@@ -57,12 +57,12 @@ class FileController extends Controller
             ->whereIn('role', ['3'])
             ->get();
         $files = File::where('user_id', $teamLead->id)
-            ->where('folder_id',$id) // Files not belonging to any folder
+            ->where('folder_id', $id) // Files not belonging to any folder
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-        
-        $folder=Folder::where('id',$id)->first();
-        return view('teamlead.pages.files.fileslist', compact('files', 'users', 'userName','folder'));
+
+        $folder = Folder::where('id', $id)->first();
+        return view('teamlead.pages.files.fileslist', compact('files', 'users', 'userName', 'folder'));
     }
 
     // create the files
@@ -78,52 +78,115 @@ class FileController extends Controller
         return view('teamlead.pages.files.add', compact('folders'));
     }
 
-    public function storeFile(Request $request)
-    {
-        $teamLead = auth()->user();
-        $userName = $teamLead->name;
+    // public function storeFile(Request $request)
+    // {
+    //     $teamLead = auth()->user();
+    //     $userName = $teamLead->name;
 
-        $request->validate([
-            'files.*' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,mp4,avi,webp,mp3|max:1024000',
-        ]);
+    //     $request->validate([
+    //         'files.*' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,mp4,avi,webp,mp3|max:1024000',
+    //     ]);
 
-        $folderId = $request->id !='' ? $request->id : null;
-        
+    //     $folderId = $request->id != '' ? $request->id : null;
 
-        try {
-            foreach ($request->file('files') as $file) {
-                $fileExtension = $file->getClientOriginalExtension(); // Get the file extension
-                $originalFileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME); // Get the original file name without extension
-                $slugName = Str::slug($userName, '-');
-                $fileName = $slugName . '-' . time() . '-' . Str::slug($originalFileName, '-') . '.' . $fileExtension; // Create the filename with slug-username-time-originalfilename.extension
+    //     try {
+    //         foreach ($request->file('files') as $file) {
+    //             $fileExtension = $file->getClientOriginalExtension(); // Get the file extension
+    //             $originalFileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME); // Get the original file name without extension
+    //             $slugName = Str::slug($userName, '-');
+    //             $fileName = $slugName . '-' . time() . '-' . Str::slug($originalFileName, '-') . '.' . $fileExtension; // Create the filename with slug-username-time-originalfilename.extension
 
-                // Check if the file already exists
-                if (file_exists(public_path('uploads/files/' . $fileName))) {
-                    return back()->withErrors([$fileName . ' already exists.']);
-                }
+    //             // Check if the file already exists
+    //             if (file_exists(public_path('uploads/files/' . $fileName))) {
+    //                 return back()->withErrors([$fileName . ' already exists.']);
+    //             }
 
-                // Store the file in the public/uploads/files directory
-                $file->move(public_path('uploads/files'), $fileName);
+    //             // Store the file in the public/uploads/files directory
+    //             $file->move(public_path('uploads/files'), $fileName);
 
-                // Save file information in the database
-                $store = new File();
-                $store->file_name = $fileName;
-                $store->extension = $fileExtension; // Store the file extension
-                $store->folder_id = $folderId;
-                $store->user_id = auth()->user()->id;
+    //             // Save file information in the database
+    //             $store = new File();
+    //             $store->file_name = $fileName;
+    //             $store->extension = $fileExtension; // Store the file extension
+    //             $store->folder_id = $folderId;
+    //             $store->user_id = auth()->user()->id;
 
-                if (!$store->save()) {
-                    // Rollback file upload if saving fails
-                    unlink(public_path('uploads/files/' . $fileName));
-                    return back()->withErrors(['Failed to save ' . $fileName . ' in the database.']);
-                }
+    //             if (!$store->save()) {
+    //                 // Rollback file upload if saving fails
+    //                 unlink(public_path('uploads/files/' . $fileName));
+    //                 return back()->withErrors(['Failed to save ' . $fileName . ' in the database.']);
+    //             }
+    //         }
+    //         return redirect('teamlead/files/list?id=' . $folderId)->with('success', 'Files uploaded successfully.');
+    //     } catch (\Exception $e) {
+    //         return back()->withErrors(['An error occurred while uploading files: ' . $e->getMessage()]);
+    //     }
+    // }
+
+    // uploadation code with security
+public function storeFile(Request $request)
+{
+    $teamLead = auth()->user();
+    $userName = $teamLead->name;
+
+    // Validate files with a large file size limit and strict rules
+    $request->validate([
+        'files.*' => 'required|file|mimes:jpeg,png,jpg,pdf,xls,xlsx|max:1024000', // Allow specific MIME types and 1GB max size
+    ]);
+
+    $folderId = $request->id != '' ? $request->id : null;
+
+    try {
+        foreach ($request->file('files') as $file) {
+            // Verify the MIME type matches the extension
+            $fileExtension = strtolower($file->getClientOriginalExtension());
+            $mimeType = $file->getMimeType();
+
+            $allowedMimeTypes = [
+                'jpeg' => 'image/jpeg',
+                'jpg' => 'image/jpeg',
+                'png' => 'image/png',
+                'pdf' => 'application/pdf',
+                'xls' => 'application/vnd.ms-excel',
+                'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ];
+
+            if (!isset($allowedMimeTypes[$fileExtension]) || $mimeType !== $allowedMimeTypes[$fileExtension]) {
+                return back()->withErrors(['Invalid file type or MIME type mismatch for ' . $file->getClientOriginalName()]);
             }
-            return redirect('teamlead/files/list?id='.$folderId)->with('success', 'Files uploaded successfully.');
-        } catch (\Exception $e) {
-            return back()->withErrors(['An error occurred while uploading files: ' . $e->getMessage()]);
-        }
-    }
 
+            // Generate a secure file name
+            $originalFileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $slugName = Str::slug($userName, '-');
+            $fileName = $slugName . '-' . time() . '-' . Str::slug($originalFileName, '-') . '.' . $fileExtension;
+
+            // Check for existing file and prevent overwriting
+            if (file_exists(public_path('uploads/files/' . $fileName))) {
+                return back()->withErrors([$fileName . ' already exists.']);
+            }
+
+            // Store the file securely
+            $file->move(public_path('uploads/files'), $fileName);
+
+            // Save file information in the database
+            $store = new File();
+            $store->file_name = $fileName;
+            $store->extension = $fileExtension;
+            $store->folder_id = $folderId;
+            $store->user_id = auth()->user()->id;
+
+            if (!$store->save()) {
+                // Rollback file upload if saving fails
+                unlink(public_path('uploads/files/' . $fileName));
+                return back()->withErrors(['Failed to save ' . $fileName . ' in the database.']);
+            }
+        }
+
+        return redirect('teamlead/files/list?id=' . $folderId)->with('success', 'Files uploaded successfully.');
+    } catch (\Exception $e) {
+        return back()->withErrors(['An error occurred while uploading files: ' . $e->getMessage()]);
+    }
+}
 
 
     // =============delete===========

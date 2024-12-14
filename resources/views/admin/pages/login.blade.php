@@ -34,7 +34,7 @@
     }
 
     .form-floating input[type="password"] {
-       
+
         color: red;
         padding-left: 100px;
 
@@ -153,7 +153,7 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    
+
                                     <div class="col-12">
                                         <div class="d-grid">
                                             <button style="background-color: #e91e63;"
